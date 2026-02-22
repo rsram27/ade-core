@@ -2,8 +2,8 @@
 
 ## Project Overview
 
-ADE Core is the open-source version of the Analytics Data Environment framework.
-This is a personal project by Roberto Butinar, designed to enable agentic data engineering workflows.
+ADE Core is the open-source version of the ADE framework.
+A personal project by Roberto Butinar — providing the structured context that transforms AI agents from code assistants into autonomous data engineering partners.
 
 ## Repository Structure
 
