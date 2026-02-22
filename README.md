@@ -150,10 +150,22 @@ Additional platforms available in the extended version:
 | Synapse | Pools, procedures, views |
 
 The extended version also includes:
+
+**Infrastructure:**
 - SQL Server metadata store with full lineage graph
+- Multi-environment management with secure credential isolation
+- Project templates and session tracking for continuity
+
+**Platform Skills (Claude commands):**
+- Databricks: deploy, run, status, query
+- Fabric: notebook deploy, SQL deploy, stored procedure execution, warehouse testing
+- Power BI: model creation and editing
+
+**Automation:**
 - Cross-platform impact analysis
 - AI-powered documentation generation
-- Streamlit dashboard
+- Platform backup and security scanning
+- Streamlit dashboard for visual exploration
 
 *Interested? Contact: roberto.butinar@gmail.com*
 
