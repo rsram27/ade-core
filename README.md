@@ -1,6 +1,6 @@
 # ADE Core
 
-**ADE** extracts metadata from your data platforms and exposes it to AI agents via MCP.
+**ADE** provides the structured context that transforms AI agents from code assistants into autonomous data engineering partners.
 
 ## What it does
 
