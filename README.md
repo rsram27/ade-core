@@ -1,4 +1,4 @@
-# ADE Core
+# Agentic Data Engineer (ADE) - Core
 
 **ADE** provides the structured context that transforms AI agents from code assistants into autonomous data engineering partners.
 
@@ -14,8 +14,6 @@
 In data engineering, context is scattered: SQL in views, DAX in Power BI, PySpark in notebooks, YAML in pipelines. There's no single repo to read.
 
 ADE collects this context and makes it queryable — so AI agents can actually help.
-
-> "The context is the product. The agent is the engine. The human is the pilot."
 
 ## Quick Start (3 steps)
 
