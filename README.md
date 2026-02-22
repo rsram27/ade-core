@@ -174,7 +174,6 @@ The extended version also includes:
 This project powers **The Autonomous Data Engineer** video series on YouTube, showing real agentic workflows for data platforms.
 
 - [YouTube Channel](https://youtube.com/@autonomous-data-engineer) *(coming soon)*
-- [Episode Scripts](docs/podcast/)
 
 ## License
 
