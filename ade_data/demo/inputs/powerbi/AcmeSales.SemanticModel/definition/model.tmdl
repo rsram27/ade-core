@@ -1,0 +1,5 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBIDataSourceVersion.'February 2025'
+
+	annotation PBI_QueryOrder = ["Sales","Product","Calendar","Customer"]

@@ -1,0 +1,38 @@
+table Product
+	/// Product dimension table for Acme Corp catalog.
+
+	/// Surrogate key for the product
+	column 'Product Key'
+		dataType: int64
+		sourceColumn: Product Key
+
+	/// Display name of the product
+	column 'Product Name'
+		dataType: string
+		sourceColumn: Product Name
+
+	/// High-level product category
+	column Category
+		dataType: string
+		sourceColumn: Category
+
+	/// Unit price of the product
+	column 'Unit Price'
+		dataType: decimal
+		sourceColumn: Unit Price
+		formatString: \$#,0.00
+
+	/// Count of distinct products sold
+	measure 'Product Count' = DISTINCTCOUNT(Product[Product Key])
+		formatString: #,0
+
+	partition Product = m
+		mode: import
+		source =
+			```
+			let
+			    Source = Sql.Database("acme-sql.database.windows.net", "acme_dw"),
+			    Product = Source{[Schema="gold", Item="dim_product"]}[Data]
+			in
+			    Product
+			```

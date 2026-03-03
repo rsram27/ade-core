@@ -1,0 +1,75 @@
+table Sales
+	/// Fact table containing individual sales transactions for Acme Corp.
+
+	/// Unique identifier for each transaction
+	column 'Transaction ID'
+		dataType: int64
+		sourceColumn: Transaction ID
+		formatString: 0
+
+	/// Foreign key linking to the Product dimension
+	column 'Product Key'
+		dataType: int64
+		sourceColumn: Product Key
+
+	/// Foreign key linking to the Customer dimension
+	column 'Customer Key'
+		dataType: int64
+		sourceColumn: Customer Key
+
+	/// Date when the order was placed
+	column 'Order Date'
+		dataType: dateTime
+		sourceColumn: Order Date
+		formatString: Short Date
+
+	/// Number of units sold in this transaction
+	column Quantity
+		dataType: int64
+		sourceColumn: Quantity
+
+	/// Revenue amount for this transaction
+	column Amount
+		dataType: decimal
+		sourceColumn: Amount
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+
+	/// Total revenue across all transactions
+	measure 'Total Sales' =
+		```
+		SUMX(
+		    Sales,
+		    Sales[Quantity] * Sales[Amount]
+		)
+		```
+
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: Revenue
+
+	/// Running total of sales for the current year
+	measure 'YTD Sales' =
+		```
+		TOTALYTD(
+		    [Total Sales],
+		    Calendar[Date]
+		)
+		```
+
+		formatString: \$#,0.00;(\$#,0.00);\$#,0.00
+		displayFolder: Revenue
+
+	/// Average revenue per transaction
+	measure 'Avg Order Value' = DIVIDE([Total Sales], COUNTROWS(Sales), 0)
+		formatString: \$#,0.00
+		displayFolder: Revenue
+
+	partition Sales = m
+		mode: import
+		source =
+			```
+			let
+			    Source = Sql.Database("acme-sql.database.windows.net", "acme_dw"),
+			    Sales = Source{[Schema="gold", Item="daily_sales"]}[Data]
+			in
+			    Sales
+			```

@@ -1,0 +1,37 @@
+table Customer
+	/// Customer dimension table with demographics and segmentation.
+
+	/// Surrogate key for the customer
+	column 'Customer Key'
+		dataType: int64
+		sourceColumn: Customer Key
+
+	/// Full name of the customer
+	column 'Customer Name'
+		dataType: string
+		sourceColumn: Customer Name
+
+	/// City where the customer is located
+	column City
+		dataType: string
+		sourceColumn: City
+
+	/// Customer segment (Premium, Regular, New)
+	column Segment
+		dataType: string
+		sourceColumn: Segment
+
+	/// Count of distinct customers
+	measure 'Customer Count' = DISTINCTCOUNT(Customer[Customer Key])
+		formatString: #,0
+
+	partition Customer = m
+		mode: import
+		source =
+			```
+			let
+			    Source = Sql.Database("acme-sql.database.windows.net", "acme_dw"),
+			    Customer = Source{[Schema="gold", Item="dim_customer"]}[Data]
+			in
+			    Customer
+			```

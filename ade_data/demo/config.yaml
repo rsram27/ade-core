@@ -11,8 +11,8 @@ platforms:
     enabled: true
     description: "Sample Databricks notebooks and jobs"
 
-  # Coming soon
   powerbi:
-    enabled: false
+    enabled: true
+    description: "Sample Power BI semantic model (Acme Sales)"
   postgresql:
     enabled: false

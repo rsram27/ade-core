@@ -1,0 +1,12 @@
+relationship Sales_Product
+	fromColumn: Sales.'Product Key'
+	toColumn: Product.'Product Key'
+
+relationship Sales_Calendar
+	fromColumn: Sales.'Order Date'
+	toColumn: Calendar.Date
+
+relationship Sales_Customer
+	fromColumn: Sales.'Customer Key'
+	toColumn: Customer.'Customer Key'
+	crossFilteringBehavior: bothDirections

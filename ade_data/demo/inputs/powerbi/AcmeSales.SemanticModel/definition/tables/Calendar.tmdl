@@ -1,0 +1,43 @@
+table Calendar
+	/// Date dimension table used for time intelligence calculations.
+
+	/// Calendar date
+	column Date
+		dataType: dateTime
+		sourceColumn: Date
+		formatString: Short Date
+
+	/// Calendar year (e.g. 2025)
+	column Year
+		dataType: int64
+		sourceColumn: Year
+
+	/// Month number (1-12)
+	column 'Month Number'
+		dataType: int64
+		sourceColumn: Month Number
+
+	/// Month display name (e.g. January)
+	column 'Month Name'
+		dataType: string
+		sourceColumn: Month Name
+
+	/// Calendar quarter (e.g. Q1)
+	column Quarter
+		dataType: string
+		sourceColumn: Quarter
+
+	partition Calendar = m
+		mode: import
+		source =
+			```
+			let
+			    Source = List.Dates(#date(2023,1,1), 1096, #duration(1,0,0,0)),
+			    ToTable = Table.FromList(Source, Splitter.SplitByNothing(), {"Date"}, null, ExtraValues.Error),
+			    AddYear = Table.AddColumn(ToTable, "Year", each Date.Year([Date])),
+			    AddMonth = Table.AddColumn(AddYear, "Month Number", each Date.Month([Date])),
+			    AddMonthName = Table.AddColumn(AddMonth, "Month Name", each Date.MonthName([Date])),
+			    AddQuarter = Table.AddColumn(AddMonthName, "Quarter", each "Q" & Text.From(Date.QuarterOfYear([Date])))
+			in
+			    AddQuarter
+			```
