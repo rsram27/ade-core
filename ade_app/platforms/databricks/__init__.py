@@ -2,9 +2,9 @@
 ADE Databricks Platform
 
 Metadata extraction from Databricks workspaces.
-Supports notebooks, jobs, and clusters.
+Supports notebooks (local files and API), jobs, and clusters.
 """
 
-from .extractor import DatabricksExtractor
+from .extractor import DatabricksExtractor, DatabricksLocalExtractor
 
-__all__ = ["DatabricksExtractor"]
+__all__ = ["DatabricksExtractor", "DatabricksLocalExtractor"]

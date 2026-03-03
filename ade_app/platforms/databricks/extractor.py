@@ -253,6 +253,122 @@ def save_extractions(data: dict, output_dir: Path):
         }, f, indent=2)
 
 
+class DatabricksLocalExtractor:
+    """Extract metadata from Databricks notebooks on disk (.py/.sql files).
+
+    File-based counterpart to DatabricksExtractor (API-based).
+    Mirrors the pattern of PowerBIExtractor reading TMDL from disk.
+    """
+
+    def __init__(self, notebooks_path: str | Path):
+        """Initialize extractor.
+
+        Args:
+            notebooks_path: Root directory containing notebook .py/.sql files.
+        """
+        self.notebooks_path = Path(notebooks_path)
+        if not self.notebooks_path.exists():
+            raise FileNotFoundError(f"Path not found: {self.notebooks_path}")
+
+    def extract_notebooks(self) -> list[dict]:
+        """Read all .py and .sql notebook files from disk.
+
+        Returns:
+            List of notebook dicts with name, path, language, source_code.
+        """
+        from .notebook_parser import NotebookIOParser
+
+        parser = NotebookIOParser()
+        notebooks = []
+
+        for ext, language in [("*.py", "python"), ("*.sql", "sql")]:
+            for file_path in sorted(self.notebooks_path.rglob(ext)):
+                logger.info(f"Parsing notebook: {file_path.name}")
+                result = parser.parse_file(file_path)
+                rel_path = file_path.relative_to(self.notebooks_path)
+
+                notebooks.append({
+                    "name": file_path.stem,
+                    "path": str(rel_path),
+                    "language": language,
+                    "source_code": result.source_code,
+                    "inputs": [obj.to_dict() for obj in result.inputs],
+                    "outputs": [obj.to_dict() for obj in result.outputs],
+                })
+
+        logger.info(f"Extracted {len(notebooks)} notebooks")
+        return notebooks
+
+    def extract_all(self) -> dict:
+        """Extract everything from disk."""
+        notebooks = self.extract_notebooks()
+        return {
+            "notebooks": notebooks,
+            "jobs": [],  # Jobs are API-only, not available from local files
+        }
+
+    def save_to_catalog(self, data: dict, db_path: str | Path):
+        """Write extracted Databricks metadata into a CatalogDB."""
+        from ade_app.core.catalog import CatalogDB
+
+        catalog = CatalogDB(db_path)
+        catalog.clear_platform("databricks")
+
+        count = 0
+        for nb in data.get("notebooks", []):
+            nb_id = catalog.insert_object(
+                platform="databricks",
+                object_type="notebook",
+                name=nb.get("name", ""),
+                path=nb.get("path", ""),
+                source_code=nb.get("source_code"),
+                metadata={
+                    "language": nb.get("language", ""),
+                    "input_count": len(nb.get("inputs", [])),
+                    "output_count": len(nb.get("outputs", [])),
+                },
+            )
+            count += 1
+
+            # Store discovered I/O as children
+            for io_obj in nb.get("inputs", []):
+                catalog.insert_object(
+                    platform="databricks",
+                    object_type=f"input_{io_obj.get('object_type', 'table')}",
+                    name=io_obj["name"],
+                    parent_id=nb_id,
+                    metadata={
+                        "direction": "input",
+                        "confidence": io_obj.get("confidence", ""),
+                        "source_platform": io_obj.get("platform", ""),
+                        "pattern_matched": io_obj.get("pattern_matched", ""),
+                    },
+                )
+                count += 1
+
+            for io_obj in nb.get("outputs", []):
+                catalog.insert_object(
+                    platform="databricks",
+                    object_type=f"output_{io_obj.get('object_type', 'table')}",
+                    name=io_obj["name"],
+                    parent_id=nb_id,
+                    metadata={
+                        "direction": "output",
+                        "confidence": io_obj.get("confidence", ""),
+                        "source_platform": io_obj.get("platform", ""),
+                        "pattern_matched": io_obj.get("pattern_matched", ""),
+                    },
+                )
+                count += 1
+
+        catalog.record_extraction("databricks", count, {
+            "source_path": str(self.notebooks_path),
+        })
+        catalog.close()
+        logger.info(f"Saved {count} Databricks objects to {db_path}")
+        return count
+
+
 def save_to_catalog(data: dict, db_path: str | Path):
     """Write extracted Databricks metadata into a CatalogDB.
 
