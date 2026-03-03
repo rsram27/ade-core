@@ -1,7 +1,7 @@
 """
 Build Demo Catalog
 
-Reads existing Databricks JSON extractions and Power BI TMDL files,
+Reads Databricks notebook .py files and Power BI TMDL files from disk,
 then writes everything into a single catalog.db for the demo environment.
 
 Usage:
@@ -23,37 +23,28 @@ DEMO_DIR = REPO_ROOT / "ade_data" / "demo"
 DB_PATH = DEMO_DIR / "catalog.db"
 
 
-def load_databricks_json() -> dict:
-    """Load Databricks extractions from JSON files."""
-    db_dir = DEMO_DIR / "extractions" / "databricks"
-    data = {"notebooks": [], "jobs": []}
-
-    nb_file = db_dir / "notebooks.json"
-    if nb_file.exists():
-        with open(nb_file, 'r', encoding='utf-8') as f:
-            data["notebooks"] = json.load(f)
-        logger.info(f"Loaded {len(data['notebooks'])} notebooks from JSON")
-
-    jobs_file = db_dir / "jobs.json"
-    if jobs_file.exists():
-        with open(jobs_file, 'r', encoding='utf-8') as f:
-            data["jobs"] = json.load(f)
-        logger.info(f"Loaded {len(data['jobs'])} jobs from JSON")
-
-    return data
-
-
 def main():
     # Remove existing catalog.db so we start fresh
-    if DB_PATH.exists():
-        DB_PATH.unlink()
+    for suffix in ("", "-shm", "-wal"):
+        p = Path(str(DB_PATH) + suffix)
+        if p.exists():
+            try:
+                p.unlink()
+            except PermissionError:
+                logger.warning(f"Could not delete {p} (in use) — will overwrite tables")
+    if not DB_PATH.exists():
         logger.info("Removed existing catalog.db")
 
-    # --- Databricks ---
-    from ade_app.platforms.databricks.extractor import save_to_catalog as save_databricks
-    db_data = load_databricks_json()
-    db_count = save_databricks(db_data, DB_PATH)
-    logger.info(f"Databricks: {db_count} objects written")
+    # --- Databricks (file-based) ---
+    from ade_app.platforms.databricks.extractor import DatabricksLocalExtractor
+    db_path = DEMO_DIR / "inputs" / "databricks"
+    if db_path.exists():
+        db_extractor = DatabricksLocalExtractor(db_path)
+        db_data = db_extractor.extract_all()
+        db_count = db_extractor.save_to_catalog(db_data, DB_PATH)
+        logger.info(f"Databricks: {db_count} objects written")
+    else:
+        logger.warning(f"Databricks notebooks not found at {db_path}")
 
     # --- Power BI ---
     from ade_app.platforms.powerbi.extractor import PowerBIExtractor
