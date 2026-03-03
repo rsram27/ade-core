@@ -253,6 +253,62 @@ def save_extractions(data: dict, output_dir: Path):
         }, f, indent=2)
 
 
+def save_to_catalog(data: dict, db_path: str | Path):
+    """Write extracted Databricks metadata into a CatalogDB.
+
+    Args:
+        data: Extraction results from extract_all() or loaded JSON files
+        db_path: Path to the SQLite catalog database
+    """
+    from ade_app.core.catalog import CatalogDB
+
+    catalog = CatalogDB(db_path)
+    catalog.clear_platform("databricks")
+
+    count = 0
+
+    # Insert notebooks
+    for nb in data.get("notebooks", []):
+        catalog.insert_object(
+            platform="databricks",
+            object_type="notebook",
+            name=nb.get("name", nb.get("path", "").split("/")[-1]),
+            path=nb.get("path", ""),
+            description=nb.get("description", ""),
+            source_code=nb.get("source_code"),
+            metadata={
+                "language": nb.get("language", ""),
+            },
+            created_at=nb.get("created_at"),
+            updated_at=nb.get("modified_at"),
+        )
+        count += 1
+
+    # Insert jobs
+    for job in data.get("jobs", []):
+        catalog.insert_object(
+            platform="databricks",
+            object_type="job",
+            name=job.get("name", f"job_{job.get('job_id')}"),
+            metadata={
+                "job_id": job.get("job_id"),
+                "tasks": job.get("tasks", []),
+                "schedule": job.get("schedule"),
+                "creator_user_name": job.get("creator_user_name"),
+            },
+            created_at=job.get("created_at"),
+        )
+        count += 1
+
+    catalog.record_extraction("databricks", count, {
+        "workspace": data.get("workspace", ""),
+        "extracted_at": data.get("extracted_at", ""),
+    })
+    catalog.close()
+    logger.info(f"Saved {count} Databricks objects to {db_path}")
+    return count
+
+
 def main():
     """CLI entry point."""
     parser = argparse.ArgumentParser(
@@ -282,6 +338,10 @@ def main():
         action="store_true",
         help="Skip extracting notebook source code (faster)"
     )
+    parser.add_argument(
+        "--db",
+        help="Path to SQLite catalog.db (writes to SQLite instead of JSON)"
+    )
 
     args = parser.parse_args()
 
@@ -299,13 +359,19 @@ def main():
     )
 
     # Save results
-    output_dir = Path(args.output)
-    save_extractions(data, output_dir)
+    if args.db:
+        save_to_catalog(data, args.db)
+    else:
+        output_dir = Path(args.output)
+        save_extractions(data, output_dir)
 
     print(f"\nExtraction complete!")
     print(f"  Notebooks: {len(data.get('notebooks', []))}")
     print(f"  Jobs: {len(data.get('jobs', []))}")
-    print(f"  Output: {output_dir}")
+    if args.db:
+        print(f"  Output: {args.db} (SQLite)")
+    else:
+        print(f"  Output: {args.output} (JSON)")
 
 
 if __name__ == "__main__":
