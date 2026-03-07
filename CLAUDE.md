@@ -16,6 +16,9 @@ ade-core/
 │   │   ├── powerbi/              # TMDL parser (tables, measures, relationships)
 │   │   └── postgresql/           # Coming soon
 │   ├── mcp_server/               # MCP Server for AI agents (v0.2.0)
+│   ├── streamlit_app/            # Web catalog UI (beta)
+│   │   ├── Home.py               # Landing page
+│   │   └── pages/                # Platform Overview, Data Catalog, Object Details
 │   └── scripts/                  # CLI utilities (build_demo_catalog)
 │
 ├── ade_data/
@@ -58,6 +61,9 @@ pytest
 
 # Extract Power BI from TMDL
 python -m ade_app.platforms.powerbi.extractor --path <definition_dir> --db <catalog.db>
+
+# Launch web catalog UI
+streamlit run ade_app/streamlit_app/Home.py
 ```
 
 ## Related
