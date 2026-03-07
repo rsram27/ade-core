@@ -4,6 +4,8 @@
 
 ![Web Catalog Walkthrough](docs/ade-core-web-catalog-walkthrough.gif)
 
+[![Full Video Demo](https://img.shields.io/badge/YouTube-Full%20Demo%20Walkthrough-red?style=for-the-badge&logo=youtube)](https://youtu.be/8gM8PfkBYIk)
+
 ## What it does
 
 - **Extract** → Pull metadata from Databricks notebooks and Power BI semantic models
