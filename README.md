@@ -2,6 +2,8 @@
 
 **ADE** provides the structured context that transforms AI agents from code assistants into autonomous data engineering partners.
 
+![Web Catalog Walkthrough](docs/ade-core-web-catalog-walkthrough.gif)
+
 ## What it does
 
 - **Extract** → Pull metadata from Databricks notebooks and Power BI semantic models
@@ -27,6 +29,9 @@ pip install -r requirements.txt
 python -m ade_app.scripts.build_demo_catalog
 
 # 3. Open with Claude Code — MCP server starts automatically
+
+# 4. (Optional) Launch the web catalog
+streamlit run ade_app/streamlit_app/Home.py
 ```
 
 ## Use with Claude
@@ -116,6 +121,20 @@ python -m ade_app.platforms.databricks.extractor \
     --db ade_data/my_env/catalog.db
 ```
 
+## Web Catalog UI
+
+Browse the metadata catalog in your browser:
+
+```bash
+streamlit run ade_app/streamlit_app/Home.py
+```
+
+**Pages:**
+- **Home** — Catalog stats, architecture diagram, quick navigation
+- **Platform Overview** — Per-platform object counts and breakdown
+- **Data Catalog** — Full-text search with platform/type filters
+- **Object Details** — Full metadata, children, Databricks lineage graph, Power BI relationship diagram
+
 ## Project Structure
 
 ```
@@ -127,6 +146,9 @@ ade-core/
 │   │   ├── powerbi/              # TMDL parser + extractor
 │   │   └── postgresql/           # Coming soon
 │   ├── mcp_server/               # MCP server for AI agents
+│   ├── streamlit_app/            # Web catalog UI
+│   │   ├── Home.py               # Landing page
+│   │   └── pages/                # Platform Overview, Data Catalog, Object Details
 │   └── scripts/                  # CLI utilities
 ├── ade_data/
 │   └── demo/                     # Demo environment (synthetic data)
@@ -165,7 +187,7 @@ Additional platforms available in the extended version:
 | Cloudera | Hive tables, Spark jobs |
 | Synapse | Pools, procedures, views |
 
-The extended version also includes SQL Server metadata store with full lineage graph, multi-environment management, platform deployment skills, cross-platform impact analysis, and a Streamlit dashboard.
+The extended version also includes SQL Server metadata store with full lineage graph, multi-environment management, platform deployment skills, and cross-platform impact analysis.
 
 *Interested? Contact: roberto.butinar@gmail.com*
 
